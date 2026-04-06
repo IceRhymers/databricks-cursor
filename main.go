@@ -29,6 +29,9 @@ func main() {
 	versionFlag := flag.Bool("version", false, "Print version and exit")
 	printEnv := flag.Bool("print-env", false, "Print environment variables and exit")
 	upstream := flag.String("upstream", "", "Override inference upstream URL")
+	proxyAPIKey := flag.String("proxy-api-key", "", "Require this API key on all incoming requests (empty = no auth)")
+	tlsCert := flag.String("tls-cert", "", "Path to TLS certificate file (requires --tls-key)")
+	tlsKey := flag.String("tls-key", "", "Path to TLS private key file (requires --tls-cert)")
 	flag.Parse()
 
 	if *versionFlag {
@@ -52,6 +55,12 @@ func main() {
 	if err := authcheck.EnsureAuthenticated(*profileFlag); err != nil {
 		log.SetOutput(os.Stderr)
 		log.Fatalf("databricks-cursor: authentication failed: %v", err)
+	}
+
+	// --- TLS validation ---
+	if err := proxy.ValidateTLSConfig(*tlsCert, *tlsKey); err != nil {
+		log.SetOutput(os.Stderr)
+		log.Fatalf("databricks-cursor: %v", err)
 	}
 
 	// --- Startup security checks ---
@@ -100,19 +109,32 @@ func main() {
 	tp := tokencache.NewTokenProvider(fetcher)
 
 	// --- Start proxy ---
-	handler := newProxy(gatewayURL, tp, *verbose)
+	handler := newProxy(gatewayURL, tp, *verbose, *proxyAPIKey, *tlsCert, *tlsKey)
+	useTLS := *tlsCert != "" && *tlsKey != ""
 	server := &http.Server{Handler: handler}
-	go func() {
-		if err := server.Serve(ln); err != nil && err != http.ErrServerClosed {
-			log.Printf("databricks-cursor: server error: %v", err)
-		}
-	}()
+	if useTLS {
+		go func() {
+			if err := server.ServeTLS(ln, *tlsCert, *tlsKey); err != nil && err != http.ErrServerClosed {
+				log.Printf("databricks-cursor: server error: %v", err)
+			}
+		}()
+	} else {
+		go func() {
+			if err := server.Serve(ln); err != nil && err != http.ErrServerClosed {
+				log.Printf("databricks-cursor: server error: %v", err)
+			}
+		}()
+	}
 
 	// --- Print instructions ---
-	fmt.Fprintf(os.Stderr, "\ndatabricks-cursor is running on http://127.0.0.1:%d\n\n", actualPort)
+	scheme := "http"
+	if useTLS {
+		scheme = "https"
+	}
+	fmt.Fprintf(os.Stderr, "\ndatabricks-cursor is running on %s://127.0.0.1:%d\n\n", scheme, actualPort)
 	fmt.Fprintf(os.Stderr, "Cursor setup (one-time):\n")
 	fmt.Fprintf(os.Stderr, "  1. Open Cursor Settings > Models\n")
-	fmt.Fprintf(os.Stderr, "  2. Set \"Override OpenAI Base URL\" to: http://127.0.0.1:%d/v1\n", actualPort)
+	fmt.Fprintf(os.Stderr, "  2. Set \"Override OpenAI Base URL\" to: %s://127.0.0.1:%d/v1\n", scheme, actualPort)
 	fmt.Fprintf(os.Stderr, "  3. Set \"OpenAI API Key\" to any non-empty value (e.g., \"databricks-proxy\")\n\n")
 	fmt.Fprintf(os.Stderr, "Press Ctrl+C to stop.\n")
 

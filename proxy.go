@@ -8,11 +8,14 @@ import (
 )
 
 // newProxy creates the HTTP proxy handler backed by pkg/proxy.NewServer.
-func newProxy(gatewayURL string, tp *tokencache.TokenProvider, verbose bool) http.Handler {
+func newProxy(gatewayURL string, tp *tokencache.TokenProvider, verbose bool, apiKey, tlsCertFile, tlsKeyFile string) http.Handler {
 	cfg := &proxy.Config{
 		InferenceUpstream: gatewayURL,
 		TokenSource:       tp,
 		Verbose:           verbose,
+		APIKey:            apiKey,
+		TLSCertFile:       tlsCertFile,
+		TLSKeyFile:        tlsKeyFile,
 	}
 	return proxy.NewServer(cfg)
 }
