@@ -21,7 +21,7 @@ func configDir() (string, error) {
 		return "", fmt.Errorf("cannot determine home directory: %w", err)
 	}
 	dir := filepath.Join(home, ".databricks-cursor")
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return "", fmt.Errorf("cannot create config directory: %w", err)
 	}
 	return dir, nil
@@ -66,7 +66,7 @@ func saveConfig(cfg Config) error {
 	if err != nil {
 		return fmt.Errorf("cannot marshal config: %w", err)
 	}
-	return os.WriteFile(path, data, 0o644)
+	return os.WriteFile(path, data, 0o600)
 }
 
 // isPortAvailable checks whether a TCP port is free on 127.0.0.1.
