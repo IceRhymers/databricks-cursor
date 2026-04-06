@@ -86,7 +86,7 @@ func parseHostFromCfg(content, profile string) (string, error) {
 
 // ConstructGatewayURL builds the AI Gateway URL from a workspace host.
 // Input:  https://my-workspace.cloud.databricks.com
-// Output: https://<workspaceID>.ai-gateway.cloud.databricks.com/anthropic
+// Output: https://<workspaceID>.ai-gateway.cloud.databricks.com/cursor/v1
 func ConstructGatewayURL(host string) string {
 	// Strip scheme and trailing slash.
 	h := strings.TrimPrefix(host, "https://")
@@ -97,5 +97,5 @@ func ConstructGatewayURL(host string) string {
 	parts := strings.SplitN(h, ".", 2)
 	workspaceID := parts[0]
 
-	return fmt.Sprintf("https://%s.ai-gateway.cloud.databricks.com/anthropic", workspaceID)
+	return fmt.Sprintf("https://%s.ai-gateway.cloud.databricks.com/cursor/v1", workspaceID)
 }
