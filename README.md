@@ -43,9 +43,7 @@ On first run, the proxy will:
 | `--version` | | Print version and exit |
 | `--print-env` | | Print environment variables |
 | `--upstream` | | Override inference upstream URL |
-| `--no-otel` | | Disable OpenTelemetry |
-| `--otel-logs-table` | | Unity Catalog table for OTEL logs |
-| `--log-file` | | Write logs to file |
+
 
 ### Port persistence
 
