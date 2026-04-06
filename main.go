@@ -13,6 +13,7 @@ import (
 	"syscall"
 
 	"github.com/IceRhymers/databricks-claude/pkg/authcheck"
+	"github.com/IceRhymers/databricks-claude/pkg/proxy"
 	"github.com/IceRhymers/databricks-claude/pkg/tokencache"
 )
 
@@ -51,6 +52,11 @@ func main() {
 	if err := authcheck.EnsureAuthenticated(*profileFlag); err != nil {
 		log.SetOutput(os.Stderr)
 		log.Fatalf("databricks-cursor: authentication failed: %v", err)
+	}
+
+	// --- Startup security checks ---
+	for _, w := range proxy.SecurityChecks() {
+		fmt.Fprintln(os.Stderr, w)
 	}
 
 	// --- Port resolution ---
