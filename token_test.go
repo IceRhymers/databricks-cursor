@@ -118,11 +118,11 @@ func TestConstructGatewayURL(t *testing.T) {
 	}{
 		{
 			"https://my-workspace.cloud.databricks.com",
-			"https://my-workspace.ai-gateway.cloud.databricks.com/anthropic",
+			"https://my-workspace.ai-gateway.cloud.databricks.com/cursor/v1",
 		},
 		{
 			"https://abc123.cloud.databricks.com/",
-			"https://abc123.ai-gateway.cloud.databricks.com/anthropic",
+			"https://abc123.ai-gateway.cloud.databricks.com/cursor/v1",
 		},
 	}
 
