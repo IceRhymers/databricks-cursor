@@ -33,7 +33,7 @@ func TestNewProxy_ReturnsHandler(t *testing.T) {
 	fetcher := &staticFetcher{token: "test-proxy-token"}
 	tp := tokencache.NewTokenProvider(fetcher)
 
-	handler := newProxy(upstream.URL, upstream.URL, tp, false)
+	handler := newProxy(upstream.URL, tp, false)
 	if handler == nil {
 		t.Fatal("newProxy returned nil handler")
 	}

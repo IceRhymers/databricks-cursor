@@ -28,9 +28,6 @@ func main() {
 	versionFlag := flag.Bool("version", false, "Print version and exit")
 	printEnv := flag.Bool("print-env", false, "Print environment variables and exit")
 	upstream := flag.String("upstream", "", "Override inference upstream URL")
-	noOtel := flag.Bool("no-otel", false, "Disable OpenTelemetry")
-	otelLogsTable := flag.String("otel-logs-table", "", "Unity Catalog table for OTEL logs")
-	logFile := flag.String("log-file", "", "Write logs to file")
 	flag.Parse()
 
 	if *versionFlag {
@@ -43,19 +40,6 @@ func main() {
 
 	if *verbose {
 		log.SetOutput(os.Stderr)
-	}
-	if *logFile != "" {
-		f, err := os.OpenFile(*logFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
-		if err != nil {
-			log.SetOutput(os.Stderr)
-			log.Fatalf("databricks-cursor: cannot open log file %q: %v", *logFile, err)
-		}
-		defer f.Close()
-		if *verbose {
-			log.SetOutput(io.MultiWriter(os.Stderr, f))
-		} else {
-			log.SetOutput(f)
-		}
 	}
 
 	if *printEnv {
@@ -105,19 +89,12 @@ func main() {
 	}
 	log.Printf("databricks-cursor: inference upstream: %s", gatewayURL)
 
-	// --- OTEL upstream ---
-	otelUpstream := gatewayURL // default: same host
-	if *noOtel {
-		otelUpstream = ""
-	}
-	_ = *otelLogsTable // acknowledged, forwarded via proxy config if needed
-
 	// --- Token provider ---
 	fetcher := &databricksFetcher{profile: *profileFlag}
 	tp := tokencache.NewTokenProvider(fetcher)
 
 	// --- Start proxy ---
-	handler := newProxy(gatewayURL, otelUpstream, tp, *verbose)
+	handler := newProxy(gatewayURL, tp, *verbose)
 	server := &http.Server{Handler: handler}
 	go func() {
 		if err := server.Serve(ln); err != nil && err != http.ErrServerClosed {
