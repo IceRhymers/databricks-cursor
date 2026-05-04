@@ -113,21 +113,24 @@ host = https://test-workspace.cloud.databricks.com
 
 func TestConstructGatewayURL(t *testing.T) {
 	tests := []struct {
+		name string
 		host string
 		want string
 	}{
 		{
-			"https://my-workspace.cloud.databricks.com",
-			"https://my-workspace.ai-gateway.cloud.databricks.com/cursor/v1",
+			name: "plain host",
+			host: "https://my-workspace.cloud.databricks.com",
+			want: "https://my-workspace.cloud.databricks.com/ai-gateway/cursor/v1",
 		},
 		{
-			"https://abc123.cloud.databricks.com/",
-			"https://abc123.ai-gateway.cloud.databricks.com/cursor/v1",
+			name: "trailing slash trimmed",
+			host: "https://abc123.cloud.databricks.com/",
+			want: "https://abc123.cloud.databricks.com/ai-gateway/cursor/v1",
 		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.host, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			got := ConstructGatewayURL(tt.host)
 			if got != tt.want {
 				t.Errorf("ConstructGatewayURL(%q) = %q, want %q", tt.host, got, tt.want)
