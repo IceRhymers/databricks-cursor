@@ -17,7 +17,7 @@ func TestVersionIsSet(t *testing.T) {
 func TestConstructGatewayURL_Integration(t *testing.T) {
 	// Verify the gateway URL format matches what pkg/proxy expects.
 	url := ConstructGatewayURL("https://workspace-123.cloud.databricks.com")
-	expected := "https://workspace-123.ai-gateway.cloud.databricks.com/cursor/v1"
+	expected := "https://workspace-123.cloud.databricks.com/ai-gateway/cursor/v1"
 	if url != expected {
 		t.Errorf("got %q, want %q", url, expected)
 	}
